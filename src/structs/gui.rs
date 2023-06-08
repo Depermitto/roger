@@ -1,25 +1,45 @@
-use iced::{widget::{row, column, text, button, Container}, Length, Sandbox, Alignment};
+use iced::{widget::{row, column, text, button, Container, Row}, Length, Sandbox, Alignment};
 
 use super::dog_api::{Dog, DogAPI};
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    Search
+    Next,
+    Previous
 }
 
-#[derive(Debug)]
-pub enum Roger {
+pub struct Roger {
+    dog_history: Vec<Dog>,
+    current_index: usize,
+    state: State
+}
+
+enum State {
     Empty,
     Loaded { dog: Dog },
     Errored
 }
 
 
+impl Roger {
+    pub fn rightmost(&self) -> bool {
+        self.dog_history.len() == self.current_index
+    }
+
+    pub fn leftmost(&self) -> bool {
+        self.current_index == 1
+    }
+}
+
 impl Sandbox for Roger {
     type Message = Message;
 
     fn new() -> Self {
-        Self::Empty
+        Self {
+            dog_history: vec![],
+            state: State::Empty,
+            current_index: 0
+        }
     }
 
     fn title(&self) -> String {
@@ -28,26 +48,58 @@ impl Sandbox for Roger {
 
     fn update(&mut self, message: Self::Message) {
         match message {
-            Message::Search => match DogAPI::random_image() {
-                Ok(dog) => *self = Self::Loaded { dog: dog },
-                Err(_) => *self = Self::Errored
+            Message::Previous => {
+                self.current_index -= 1;
+                self.state = State::Loaded { dog: self.dog_history[self.current_index - 1].clone() };
+            }
+            Message::Next => match self.rightmost() {
+                true => match DogAPI::random_image() {
+                    Ok(dog) => {
+                        self.state = State::Loaded { dog: dog.clone() };
+                        self.dog_history.push(dog);
+                        self.current_index += 1;
+                    }
+                    Err(_) => self.state = State::Errored
+                }
+                false => {
+                    self.current_index += 1;
+                    self.state = State::Loaded { dog: self.dog_history[self.current_index - 1].clone() };
+                }
             }
         }
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message> {
-        let content = match self {
-            Self::Empty => column![
-                button("Random dog image").on_press(Message::Search)
+        let content = match &self.state {
+            State::Empty => column![
+                button("Random dog image").on_press(Message::Next)
             ],
-            Self::Loaded { dog } => column![
-                dog.view(),
-                button("Next dog").on_press(Message::Search)
-            ]
-            .align_items(Alignment::Center),
-            Self::Errored => column![
+            State::Loaded { dog } => {
+                let buttons:Row<Message, _>;
+
+                if self.leftmost() || self.dog_history.len() < 2  {
+                    buttons = row![
+                        button("Next dog").on_press(Message::Next)
+                    ];
+                } else {
+                    buttons = row![
+                        button("Previous dog").on_press(Message::Previous),
+                        button("Next dog").on_press(Message::Next)
+                    ]
+                    .spacing(20);
+                }
+
+                column![
+                    dog.view(),
+                    buttons
+                ]
+                .spacing(20)
+                .padding(20)
+                .align_items(Alignment::Center)
+            },
+            State::Errored => column![
                 text("Whoops!, Couldn't find your dog"),
-                button("Try again!").on_press(Message::Search)
+                button("Try again!").on_press(Message::Next)
             ]
             .align_items(Alignment::Center)
         };

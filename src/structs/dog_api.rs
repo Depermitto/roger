@@ -41,7 +41,7 @@ impl DogAPI {
     pub async fn all_breeds() -> Result<Vec<HashMap<String, Vec<String>>>, Error> {
 
         #[derive(Deserialize)]
-        struct AllBreeds {
+        struct Response {
             message: Vec<HashMap<String, Vec<String>>>,
             status: String
         }
@@ -53,7 +53,7 @@ impl DogAPI {
         .text()
         .await?;
 
-        let all_breeds_container: AllBreeds = serde_json::from_str(&full_body_text_response)?;
+        let all_breeds_container: Response = serde_json::from_str(&full_body_text_response)?;
 
         Ok(all_breeds_container.message)
     }
