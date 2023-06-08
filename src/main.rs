@@ -1,18 +1,11 @@
-mod endpoints;
 mod structs {
     pub mod dog_api;
-    pub mod window;
+    pub mod gui;
 }
 
-use endpoints::by_breed;
-use structs::dog_api::DogAPI;
+use iced::{Settings, Application};
+use structs::gui::Roger;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let prompt = by_breed("hound");
-    let dog = DogAPI::new(&prompt)
-        .await?;
-
-    println!("{:#?}", dog.message()[0]);
-    Ok(())
+fn main() -> iced::Result {
+    Roger::run(Settings::default())
 }
