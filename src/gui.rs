@@ -1,4 +1,4 @@
-use iced::{widget::{row, column, text, button, Container, Row}, Length, Sandbox, Alignment};
+use iced::{widget::{row, column, text, button, Container, pick_list}, Length, Sandbox, Alignment};
 
 use super::dog_api::{Dog, DogAPI};
 
@@ -72,29 +72,24 @@ impl Sandbox for Roger {
     fn view(&self) -> iced::Element<'_, Self::Message> {
         let content = match &self.state {
             State::Empty => column![
-                button("Random dog image").on_press(Message::Next)
+                button("Random dog image").on_press(Message::Next),
             ],
             State::Loaded { dog } => {
-                let buttons:Row<Message, _>;
+                let mut buttons = row![].spacing(10);
 
                 if self.leftmost() || self.dog_history.len() < 2  {
-                    buttons = row![
-                        button("Next dog").on_press(Message::Next)
-                    ];
+                    buttons = buttons.push(button("Previous dog"));
                 } else {
-                    buttons = row![
-                        button("Previous dog").on_press(Message::Previous),
-                        button("Next dog").on_press(Message::Next)
-                    ]
-                    .spacing(20);
+                    buttons = buttons.push(button("Previous dog").on_press(Message::Previous));
                 }
+                buttons = buttons.push(button("Next dog").on_press(Message::Next));
 
                 column![
                     dog.view(),
                     buttons
                 ]
-                .spacing(20)
-                .padding(20)
+                .spacing(10)
+                .padding(10)
                 .align_items(Alignment::Center)
             },
             State::Errored => column![

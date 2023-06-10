@@ -1,11 +1,16 @@
-mod structs {
-    pub mod dog_api;
-    pub mod gui;
-}
+mod dog_api;
+mod gui;
 
-use iced::{Settings, Application};
-use structs::gui::Roger;
+use iced::{Settings, Application, window::icon};
+use gui::Roger;
 
 fn main() -> iced::Result {
-    Roger::run(Settings::default())
+    let icon = icon::from_file("resources/red_dog.ico").unwrap();
+    Roger::run(Settings {
+        window: iced::window::Settings {
+            icon: Some(icon),
+            ..Default::default()
+        },
+        ..Default::default()
+    })
 }
