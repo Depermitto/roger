@@ -1,4 +1,4 @@
-use iced::{widget::{row, column, text, button, Container, pick_list}, Length, Sandbox, Alignment};
+use iced::{widget::{row, column, text, button, Container}, Length, Sandbox, Alignment};
 
 use super::dog_api::{Dog, DogAPI};
 

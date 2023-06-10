@@ -1,11 +1,12 @@
 mod dog_api;
 mod gui;
 
-use iced::{Settings, Application, window::icon};
-use gui::Roger;
-
 fn main() -> iced::Result {
-    let icon = icon::from_file("resources/red_dog.ico").unwrap();
+    use iced::{Settings, Application, window::icon};
+    use gui::Roger;
+
+    let icon_data = include_bytes!("../resources/red_dog_portrait.ico");
+    let icon = icon::from_file_data(icon_data, None).unwrap();
     Roger::run(Settings {
         window: iced::window::Settings {
             icon: Some(icon),
