@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use bytes::Bytes;
 use iced::{widget::image, Element, Length};
 use serde::Deserialize;
@@ -9,7 +8,7 @@ pub struct DogAPI;
 
 #[derive(Debug, Clone)]
 pub struct Dog {
-    image: image::Handle
+    image: image::Handle,
 }
 
 impl DogAPI {
@@ -18,52 +17,24 @@ impl DogAPI {
         #[derive(Debug, Deserialize)]
         struct Response {
             message: String,
-            status: String
         }
 
         let response = reqwest::get("https://dog.ceo/api/breeds/image/random")
             .await?
             .text()
             .await?;
-
-        // If the previous request succeded we can assume this one will too
-        let response: Response = serde_json::from_str(&response).unwrap();
-
-        let bytes = reqwest::get(response.message)
-            .await?
-            .bytes()
-            .await?;
+        let response: Response = serde_json::from_str(&response)?;
+        let bytes = reqwest::get(response.message).await?.bytes().await?;
 
         Ok(Dog::new(bytes))
-    }
-
-
-    pub async fn all_breeds() -> Result<Vec<HashMap<String, Vec<String>>>, Error> {
-
-        #[derive(Deserialize)]
-        struct Response {
-            message: Vec<HashMap<String, Vec<String>>>,
-            status: String
-        }
-
-        let full_body_text_response = reqwest::get(
-            "https://dog.ceo/api/breeds/list/all"
-        )
-        .await?
-        .text()
-        .await?;
-
-        let all_breeds_container: Response = serde_json::from_str(&full_body_text_response)?;
-
-        Ok(all_breeds_container.message)
     }
 }
 
 impl Dog {
     pub fn new(bytes: Bytes) -> Self {
-        let image_handle = image::Handle::from_memory(bytes);
-
-        Self { image: image_handle }
+        Self {
+            image: image::Handle::from_memory(bytes),
+        }
     }
 
     pub fn view(&self) -> Element<Message> {
@@ -74,11 +45,10 @@ impl Dog {
     }
 }
 
-
 #[derive(Debug, Clone, Copy)]
 pub enum Error {
     APIError,
-    JSONParsingError
+    JSONParsingError,
 }
 
 impl From<reqwest::Error> for Error {
